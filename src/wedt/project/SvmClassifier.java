@@ -87,4 +87,17 @@ public class SvmClassifier {
             System.out.println("Exception in testing the classifier.");
         }
     }
+    
+    public double classifySingle(String tweet) {
+        Instance instance = cmn.extractFeatureFromString(tweet);
+        
+        try {
+            classifier = (Classifier) weka.core.SerializationHelper.read("NaiveBayes.model");
+            double score = classifier.classifyInstance(instance);
+            return score;
+        } catch (Exception ex) {
+            System.out.println("Exception in testing the classifier.");
+        }
+        return -1;
+    }
 }
