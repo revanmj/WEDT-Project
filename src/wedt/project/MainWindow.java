@@ -5,6 +5,11 @@
  */
 package wedt.project;
 
+import cmu.arktweetnlp.POSTagger;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.swing.DefaultListModel;
@@ -12,6 +17,8 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
+import weka.core.Attribute;
+import weka.core.Instances;
 
 /**
  *
@@ -19,11 +26,45 @@ import twitter4j.conf.ConfigurationBuilder;
  */
 public class MainWindow extends javax.swing.JFrame {
 
+    private ArrayList<String> featureWords;
+    private ArrayList<Attribute> attributeList;
+    private Instances inputDataset;
+    private POSTagger posTagger;
+    private ArrayList<String> sentimentClassList;
+    
     /**
      * Creates new form MainWindow
      */
     public MainWindow() {
         initComponents();
+        attributeList = new ArrayList<>();
+        posTagger = new POSTagger();
+        
+        ObjectInputStream ois = null;
+        try {
+            //reads the feature words list to a hashset
+            ois = new ObjectInputStream(new FileInputStream("FeatureWordsList.dat"));
+            featureWords = (ArrayList<String>) ois.readObject();
+        } catch (Exception ex) {
+            System.out.println("Exception in Deserialization");
+        } finally {
+            try {
+                ois.close();
+            } catch (IOException ex) {
+                System.out.println("Exception while closing file after Deserialization");
+            }
+        }
+        
+        //creating an attribute list from the list of feature words
+        sentimentClassList = new ArrayList<>();
+        sentimentClassList.add("positive");
+        sentimentClassList.add("negative");
+        for(String featureWord : featureWords)
+        {
+            attributeList.add(new Attribute(featureWord));
+        }
+        //the last attribute reprsents ths CLASS (Sentiment) of the tweet
+        attributeList.add(new Attribute("Sentiment",sentimentClassList));
     }
 
     /**
