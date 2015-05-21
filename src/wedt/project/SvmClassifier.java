@@ -5,99 +5,67 @@
  */
 package wedt.project;
 
+import java.io.File;
 import weka.classifiers.Classifier;
 import weka.classifiers.functions.SMO;
-
 import weka.core.Instance;
 import weka.core.Instances;
-
 
 /**
  *
  * @author Michał
  */
+
 public class SvmClassifier {
-    private Instances inputDataset;
-    private Classifier classifier;
+    private Classifier cls;
     private Common cmn;
     
-    SvmClassifier(Instances dataset) {
-        inputDataset = dataset;
-        classifier = new SMO();
+    SvmClassifier() {
+        cls = new SMO();
     }
     
-    public void trainClassifier(final String INPUT_FILENAME, Instances inputDataset)
-    {
-            cmn = new Common();
-            cmn.getTrainingDataset(INPUT_FILENAME);
-            
-            //trainingInstances consists of feature vector of every input
-            Instances trainingInstances = cmn.createInstances("TRAINING_INSTANCES");
-            
-            for(Instance currentInstance : inputDataset)
-            {
-                //extractFeature method returns the feature vector for the current input
-                Instance currentFeatureVector = cmn.extractFeature(currentInstance);
-                
-                //Make the currentFeatureVector to be added to the trainingInstances
-                currentFeatureVector.setDataset(trainingInstances);
-                trainingInstances.add(currentFeatureVector);
-            }
+    public void train(File file) {
+        Instances trainingInstances = cmn.getPrepapredSet(file);
             
         try {
-            //classifier training code
-            classifier.buildClassifier(trainingInstances);
-            
-            //storing the trained classifier to a file for future use
-            weka.core.SerializationHelper.write("SVM.model",classifier);
+            cls.buildClassifier(trainingInstances);
+            weka.core.SerializationHelper.write("SVM.model",cls);
         } catch (Exception ex) {
-            System.out.println("Exception in training the classifier.");
+            System.out.println("Blad uczenia");
         }
     }
     
-    public void testClassifier(final String INPUT_FILENAME)
-    {
-        cmn.getTrainingDataset(INPUT_FILENAME);
-            
-        //trainingInstances consists of feature vector of every input
-        Instances testingInstances = cmn.createInstances("TESTING_INSTANCES");
-
-        for(Instance currentInstance : inputDataset)
-        {
-            //extractFeature method returns the feature vector for the current input
-            Instance currentFeatureVector = cmn.extractFeature(currentInstance);
-
-            //Make the currentFeatureVector to be added to the trainingInstances
-            currentFeatureVector.setDataset(testingInstances);
-            testingInstances.add(currentFeatureVector);
-        }
-            
-            
-        try {
-            //Classifier deserialization
-            classifier = (Classifier) weka.core.SerializationHelper.read("SVM.model");
-            
-            //classifier testing code
-            for(Instance testInstance : testingInstances)
-            {
-                double score = classifier.classifyInstance(testInstance);
-                System.out.println(testingInstances.attribute("Sentiment").value((int)score));
-            }
-        } catch (Exception ex) {
-            System.out.println("Exception in testing the classifier.");
-        }
-    }
-    
-    public double classifySingle(String tweet) {
+    public String classifySingle(String tweet) {
         Instance instance = cmn.extractFeatureFromString(tweet);
         
         try {
-            classifier = (Classifier) weka.core.SerializationHelper.read("NaiveBayes.model");
-            double score = classifier.classifyInstance(instance);
-            return score;
+            cls = (Classifier) weka.core.SerializationHelper.read("SVM.model");
+            double score = cls.classifyInstance(instance);
+            return cmn.sentiment.get((int)score);
         } catch (Exception ex) {
-            System.out.println("Exception in testing the classifier.");
+            System.out.println("Blad klasyfikacji Single");
+        }
+        return null;
+    }
+    
+    public int classifyFromCsv(File file) {
+        Instances instances = cmn.getPrepapredSet(file);
+            
+        try {
+            cls = (Classifier) weka.core.SerializationHelper.read("SVM.model");
+            int errors = 0;
+            
+            for(Instance testInstance : instances) {
+                double score = cls.classifyInstance(testInstance);
+                System.out.println(instances.attribute("Sentiment").value((int)score));
+                if (testInstance.value(instances.attribute("Sentiment")) != score)
+                    errors++;
+            }
+            return errors;
+        } catch (Exception ex) {
+            System.out.println("Blad klasyfikacji CSV");
         }
         return -1;
     }
+
 }

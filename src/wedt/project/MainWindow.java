@@ -5,20 +5,13 @@
  */
 package wedt.project;
 
-import cmu.arktweetnlp.POSTagger;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
-import java.util.Map;
 import javax.swing.DefaultListModel;
-import javax.swing.JList;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
-import weka.core.Attribute;
-import weka.core.Instances;
 
 /**
  *
@@ -26,45 +19,17 @@ import weka.core.Instances;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    private ArrayList<String> featureWords;
-    private ArrayList<Attribute> attributeList;
-    private Instances inputDataset;
-    private POSTagger posTagger;
-    private ArrayList<String> sentimentClassList;
+    private BayesClassifier bayesC;
+    private SvmClassifier svmC;
+    private DefaultListModel listModel;
     
     /**
      * Creates new form MainWindow
      */
     public MainWindow() {
         initComponents();
-        attributeList = new ArrayList<>();
-        posTagger = new POSTagger();
-        
-        ObjectInputStream ois = null;
-        try {
-            //reads the feature words list to a hashset
-            ois = new ObjectInputStream(new FileInputStream("FeatureWordsList.dat"));
-            featureWords = (ArrayList<String>) ois.readObject();
-        } catch (Exception ex) {
-            System.out.println("Exception in Deserialization");
-        } finally {
-            try {
-                ois.close();
-            } catch (IOException ex) {
-                System.out.println("Exception while closing file after Deserialization");
-            }
-        }
-        
-        //creating an attribute list from the list of feature words
-        sentimentClassList = new ArrayList<>();
-        sentimentClassList.add("positive");
-        sentimentClassList.add("negative");
-        for(String featureWord : featureWords)
-        {
-            attributeList.add(new Attribute(featureWord));
-        }
-        //the last attribute reprsents ths CLASS (Sentiment) of the tweet
-        attributeList.add(new Attribute("Sentiment",sentimentClassList));
+        bayesC = new BayesClassifier();
+        svmC = new SvmClassifier();
     }
 
     /**
@@ -76,20 +41,28 @@ public class MainWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        fileChooser = new javax.swing.JFileChooser();
         jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        searchButton = new javax.swing.JButton();
         checkBoxPopular = new javax.swing.JCheckBox();
         checkBoxLatest = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
-        jButton2 = new javax.swing.JButton();
+        tweetsList = new javax.swing.JList();
+        checkTweetButton = new javax.swing.JButton();
+        testFromCsvButton = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        bayesLabel = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        svmLabel = new javax.swing.JLabel();
+        statusLabel = new javax.swing.JLabel();
+        learnButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jButton1.setText("Szukaj");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        searchButton.setText("Szukaj");
+        searchButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                searchButtonActionPerformed(evt);
             }
         });
 
@@ -97,15 +70,33 @@ public class MainWindow extends javax.swing.JFrame {
 
         checkBoxLatest.setText("Najnowsze");
         checkBoxLatest.setName("checkBoxLatest"); // NOI18N
-        checkBoxLatest.addActionListener(new java.awt.event.ActionListener() {
+
+        jScrollPane1.setViewportView(tweetsList);
+
+        checkTweetButton.setText("Ocena");
+        checkTweetButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkBoxLatestActionPerformed(evt);
+                checkTweetButtonActionPerformed(evt);
             }
         });
 
-        jScrollPane1.setViewportView(jList1);
+        testFromCsvButton.setText("Test danymi z pliku CSV");
+        testFromCsvButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                testFromCsvButtonActionPerformed(evt);
+            }
+        });
 
-        jButton2.setText("Ocena");
+        jLabel1.setText("Bayes:");
+
+        jLabel2.setText("SVM:");
+
+        learnButton.setText("Uczenie");
+        learnButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                learnButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -115,21 +106,33 @@ public class MainWindow extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(checkBoxLatest)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(checkBoxPopular)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(jTextField1))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 560, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1)
-                        .addContainerGap())
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel1)
+                            .addComponent(bayesLabel)
+                            .addComponent(jLabel2)
+                            .addComponent(svmLabel)
+                            .addComponent(learnButton, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+                            .addComponent(checkTweetButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 11, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jButton2)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 560, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 105, Short.MAX_VALUE))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(checkBoxLatest)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(checkBoxPopular)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addComponent(jTextField1))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(searchButton))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(testFromCsvButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(statusLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 317, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -137,26 +140,38 @@ public class MainWindow extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(searchButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxPopular)
                     .addComponent(checkBoxLatest))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(bayesLabel)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(svmLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(learnButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(checkTweetButton)
+                        .addGap(0, 135, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton2)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(testFromCsvButton)
+                    .addComponent(statusLabel))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void checkBoxLatestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxLatestActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_checkBoxLatestActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
             .setOAuthConsumerKey("PG0vtiQ73sbKKCfp9JfqyQ")
@@ -193,18 +208,65 @@ public class MainWindow extends javax.swing.JFrame {
 
             result = twitter.search(query);
             List<Status> tweets = result.getTweets();
-            DefaultListModel listModel = new DefaultListModel();
-            jList1.setModel(listModel);
-            for (Status tweet : tweets) {
+            listModel = new DefaultListModel();
+            tweetsList.setModel(listModel);
+            tweets.stream().forEach((tweet) -> {
                 listModel.addElement(tweet.getText());
-            }
+            });
                 
         } catch (TwitterException te) {
             te.printStackTrace();
             //System.out.println("Failed to search tweets: " + te.getMessage());
-            JOptionPane.showMessageDialog(null, te.getMessage(), "InfoBox: " + "Blad pobierania wynikow wyszukiwania", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, te.getMessage(), "Blad pobierania wynikow wyszukiwania", JOptionPane.INFORMATION_MESSAGE);
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_searchButtonActionPerformed
+
+    private void learnButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_learnButtonActionPerformed
+        int returnVal = fileChooser.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            try {
+                statusLabel.setText("Trwa uczenie (Bayes) ...");
+                bayesC.train(file);
+                statusLabel.setText("Trwa uczenie (SVM) ...");
+                svmC.train(file);
+                statusLabel.setText("Gotowe");
+            } catch (Exception ex) {
+                System.out.println("problem accessing file"+file.getAbsolutePath());
+            }
+            statusLabel.setText("Blad");
+        }
+    }//GEN-LAST:event_learnButtonActionPerformed
+
+    private void checkTweetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkTweetButtonActionPerformed
+        String bayesResult;
+        String svmResult;
+        statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
+        bayesResult = bayesC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString());
+        statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
+        svmResult = svmC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString());
+        statusLabel.setText("Gotowe");
+        bayesLabel.setText(bayesResult);
+        svmLabel.setText(svmResult);
+    }//GEN-LAST:event_checkTweetButtonActionPerformed
+
+    private void testFromCsvButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testFromCsvButtonActionPerformed
+        int returnVal = fileChooser.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            try {
+                statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
+                int bayesErr = bayesC.classifyFromCsv(file);
+                statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
+                int svmErr = svmC.classifyFromCsv(file);
+                statusLabel.setText("Gotowe");
+                JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr + "\nBledy SVM: " + svmErr, "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                System.out.println("problem accessing file"+file.getAbsolutePath());
+            }
+            statusLabel.setText("Blad");
+        }
+    }//GEN-LAST:event_testFromCsvButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -234,20 +296,26 @@ public class MainWindow extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MainWindow().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new MainWindow().setVisible(true);
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel bayesLabel;
     private javax.swing.JCheckBox checkBoxLatest;
     private javax.swing.JCheckBox checkBoxPopular;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JList jList1;
+    private javax.swing.JButton checkTweetButton;
+    private javax.swing.JFileChooser fileChooser;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JButton learnButton;
+    private javax.swing.JButton searchButton;
+    private javax.swing.JLabel statusLabel;
+    private javax.swing.JLabel svmLabel;
+    private javax.swing.JButton testFromCsvButton;
+    private javax.swing.JList tweetsList;
     // End of variables declaration//GEN-END:variables
 }
