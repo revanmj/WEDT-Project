@@ -9,6 +9,7 @@ import cmu.arktweetnlp.POSTagger;
 import cmu.arktweetnlp.Token;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class Common {
         sentiment.add("positive");
         sentiment.add("negative");
         sentiment.add("neutral");
+        tagger = new POSTagger();
         
         ObjectInputStream inputS = null;
         try {
@@ -68,8 +70,9 @@ public class Common {
             }
      
             return instances;
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.out.println("Blad w przygotowywaniu zbioru");
+            System.out.println(e.toString());
         }
         
         return null;

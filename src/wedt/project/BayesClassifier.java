@@ -18,13 +18,12 @@ import weka.core.Instances;
 
 public class BayesClassifier {
     private Classifier cls;
-    private Common cmn;
     
     BayesClassifier() {
         cls = new NaiveBayes();
     }
     
-    public void train(File file) {
+    public void train(File file, Common cmn) {
         Instances instances = cmn.getPrepapredSet(file);
                 
         try {
@@ -32,11 +31,13 @@ public class BayesClassifier {
             weka.core.SerializationHelper.write("Bayes.model",cls);
         } catch (Exception ex) {
             System.out.println("Blad uczenia");
+            System.out.println(ex.toString());
         }
     }
     
-    public String classifySingle(String tweet) {
+    public String classifySingle(String tweet, Common cmn) {
         Instance instance = cmn.extractFeatureFromString(tweet);
+        instance.setDataset(cmn.getEmptyInstances("instances"));
         
         try {
             cls = (Classifier) weka.core.SerializationHelper.read("Bayes.model");
@@ -44,11 +45,12 @@ public class BayesClassifier {
             return cmn.sentiment.get((int)score);
         } catch (Exception ex) {
             System.out.println("Blas klasyfikacji Single");
+            ex.printStackTrace();
         }
         return null;
     }
     
-    public int classifyFromCsv(File file) {   
+    public int classifyFromCsv(File file, Common cmn) {   
         Instances instances = cmn.getPrepapredSet(file);
             
         try {

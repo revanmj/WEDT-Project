@@ -18,13 +18,12 @@ import weka.core.Instances;
 
 public class SvmClassifier {
     private Classifier cls;
-    private Common cmn;
     
     SvmClassifier() {
         cls = new SMO();
     }
     
-    public void train(File file) {
+    public void train(File file, Common cmn) {
         Instances trainingInstances = cmn.getPrepapredSet(file);
             
         try {
@@ -32,11 +31,13 @@ public class SvmClassifier {
             weka.core.SerializationHelper.write("SVM.model",cls);
         } catch (Exception ex) {
             System.out.println("Blad uczenia");
+            System.out.println(ex.toString());
         }
     }
     
-    public String classifySingle(String tweet) {
+    public String classifySingle(String tweet, Common cmn) {
         Instance instance = cmn.extractFeatureFromString(tweet);
+        instance.setDataset(cmn.getEmptyInstances("instances"));
         
         try {
             cls = (Classifier) weka.core.SerializationHelper.read("SVM.model");
@@ -48,7 +49,7 @@ public class SvmClassifier {
         return null;
     }
     
-    public int classifyFromCsv(File file) {
+    public int classifyFromCsv(File file, Common cmn) {
         Instances instances = cmn.getPrepapredSet(file);
             
         try {

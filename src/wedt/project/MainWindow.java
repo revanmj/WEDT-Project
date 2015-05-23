@@ -21,7 +21,9 @@ public class MainWindow extends javax.swing.JFrame {
 
     private BayesClassifier bayesC;
     private SvmClassifier svmC;
+    private Common cmn;
     private DefaultListModel listModel;
+    private boolean trained = false;
     
     /**
      * Creates new form MainWindow
@@ -30,6 +32,16 @@ public class MainWindow extends javax.swing.JFrame {
         initComponents();
         bayesC = new BayesClassifier();
         svmC = new SvmClassifier();
+        cmn = new Common();
+        
+        try {
+            File bayesData = new File("NaiveBayes.model");
+            File svmData = new File("SVM.model");
+            if (bayesData.exists() && svmData.exists())
+                trained = true;
+        } catch (Exception e) {
+            
+        }
     }
 
     /**
@@ -227,27 +239,32 @@ public class MainWindow extends javax.swing.JFrame {
             File file = fileChooser.getSelectedFile();
             try {
                 statusLabel.setText("Trwa uczenie (Bayes) ...");
-                bayesC.train(file);
-                statusLabel.setText("Trwa uczenie (SVM) ...");
-                svmC.train(file);
+                bayesC.train(file, cmn);
+                //statusLabel.setText("Trwa uczenie (SVM) ...");
+                //svmC.train(file, cmn);
                 statusLabel.setText("Gotowe");
+                trained = true;
             } catch (Exception ex) {
-                System.out.println("problem accessing file"+file.getAbsolutePath());
+                statusLabel.setText("Blad");
+                System.out.println("problem accessing file "+file.getAbsolutePath());
+                System.out.println(ex.toString());
             }
-            statusLabel.setText("Blad");
         }
     }//GEN-LAST:event_learnButtonActionPerformed
 
     private void checkTweetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkTweetButtonActionPerformed
-        String bayesResult;
-        String svmResult;
-        statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
-        bayesResult = bayesC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString());
-        statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
-        svmResult = svmC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString());
-        statusLabel.setText("Gotowe");
-        bayesLabel.setText(bayesResult);
-        svmLabel.setText(svmResult);
+        if (trained) {
+            String bayesResult;
+            String svmResult;
+            statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
+            bayesResult = bayesC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
+            //statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
+            //svmResult = svmC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
+            statusLabel.setText("Gotowe");
+            bayesLabel.setText(bayesResult);
+            //svmLabel.setText(svmResult);
+        } else
+            JOptionPane.showMessageDialog(null, "Najpierw uruchom proces uczenia!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_checkTweetButtonActionPerformed
 
     private void testFromCsvButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testFromCsvButtonActionPerformed
@@ -256,11 +273,11 @@ public class MainWindow extends javax.swing.JFrame {
             File file = fileChooser.getSelectedFile();
             try {
                 statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
-                int bayesErr = bayesC.classifyFromCsv(file);
-                statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
-                int svmErr = svmC.classifyFromCsv(file);
+                int bayesErr = bayesC.classifyFromCsv(file, cmn);
+                //statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
+                //int svmErr = svmC.classifyFromCsv(file, cmn);
                 statusLabel.setText("Gotowe");
-                JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr + "\nBledy SVM: " + svmErr, "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr + "\nBledy SVM: " + 0, "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 System.out.println("problem accessing file"+file.getAbsolutePath());
             }
