@@ -36,16 +36,19 @@ public class BayesClassifier {
     }
     
     public String classifySingle(String tweet, Common cmn) {
+        System.out.println(tweet);
         Instance instance = cmn.extractFeatureFromString(tweet);
         instance.setDataset(cmn.getEmptyInstances("instances"));
         
         try {
             cls = (Classifier) weka.core.SerializationHelper.read("Bayes.model");
             double score = cls.classifyInstance(instance);
+            double dist[] = cls.distributionForInstance(instance); // dokladne dane
+            for (int i = 0; i < dist.length; i++)
+                System.out.println(dist[i] + "");
             return cmn.sentiment.get((int)score);
         } catch (Exception ex) {
             System.out.println("Blas klasyfikacji Single");
-            ex.printStackTrace();
         }
         return null;
     }
@@ -59,7 +62,6 @@ public class BayesClassifier {
 
             for(Instance testInstance : instances) {
                 double score = cls.classifyInstance(testInstance);
-                System.out.println(instances.attribute("Sentiment").value((int)score));
                 if (testInstance.value(instances.attribute("Sentiment")) != score)
                     errors++;
             }

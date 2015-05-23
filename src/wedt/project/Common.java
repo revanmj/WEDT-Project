@@ -38,7 +38,6 @@ public class Common {
         sentiment = new ArrayList<>();
         sentiment.add("positive");
         sentiment.add("negative");
-        sentiment.add("neutral");
         tagger = new POSTagger();
         
         ObjectInputStream inputS = null;

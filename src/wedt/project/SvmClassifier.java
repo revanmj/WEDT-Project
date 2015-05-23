@@ -21,6 +21,10 @@ public class SvmClassifier {
     
     SvmClassifier() {
         cls = new SMO();
+        try {
+            ((SMO)cls).setOptions(weka.core.Utils.splitOptions("-M"));
+            ((SMO)cls).setBuildLogisticModels(true);
+        } catch (Exception e) {}
     }
     
     public void train(File file, Common cmn) {
@@ -36,12 +40,16 @@ public class SvmClassifier {
     }
     
     public String classifySingle(String tweet, Common cmn) {
+        System.out.println(tweet);
         Instance instance = cmn.extractFeatureFromString(tweet);
         instance.setDataset(cmn.getEmptyInstances("instances"));
         
         try {
             cls = (Classifier) weka.core.SerializationHelper.read("SVM.model");
             double score = cls.classifyInstance(instance);
+            double dist[] = cls.distributionForInstance(instance); // dokladne dane
+            for (int i = 0; i < dist.length; i++)
+                System.out.println(dist[i] + "");
             return cmn.sentiment.get((int)score);
         } catch (Exception ex) {
             System.out.println("Blad klasyfikacji Single");
@@ -58,7 +66,6 @@ public class SvmClassifier {
             
             for(Instance testInstance : instances) {
                 double score = cls.classifyInstance(testInstance);
-                System.out.println(instances.attribute("Sentiment").value((int)score));
                 if (testInstance.value(instances.attribute("Sentiment")) != score)
                     errors++;
             }

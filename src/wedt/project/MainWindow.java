@@ -35,12 +35,12 @@ public class MainWindow extends javax.swing.JFrame {
         cmn = new Common();
         
         try {
-            File bayesData = new File("NaiveBayes.model");
+            File bayesData = new File("Bayes.model");
             File svmData = new File("SVM.model");
-            if (bayesData.exists() && svmData.exists())
+            if (bayesData.exists() && !svmData.exists())
                 trained = true;
         } catch (Exception e) {
-            
+            System.out.println("init failed");
         }
     }
 
@@ -207,6 +207,7 @@ public class MainWindow extends javax.swing.JFrame {
 //            System.out.println("Failed to get rate limit status: " + te.getMessage());
 //        }
         try {
+            statusLabel.setText("Trwa wyszukiwanie...");
             Query query = new Query(jTextField1.getText());
             query.setCount(5);
             query.setLang("en");
@@ -227,6 +228,7 @@ public class MainWindow extends javax.swing.JFrame {
             });
                 
         } catch (TwitterException te) {
+            statusLabel.setText("Wyszukiwanie nie powiodlo sie");
             te.printStackTrace();
             //System.out.println("Failed to search tweets: " + te.getMessage());
             JOptionPane.showMessageDialog(null, te.getMessage(), "Blad pobierania wynikow wyszukiwania", JOptionPane.INFORMATION_MESSAGE);
