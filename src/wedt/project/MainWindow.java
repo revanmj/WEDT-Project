@@ -37,8 +37,11 @@ public class MainWindow extends javax.swing.JFrame {
         try {
             File bayesData = new File("Bayes.model");
             File svmData = new File("SVM.model");
-            if (bayesData.exists() && !svmData.exists())
+            if (bayesData.exists() && svmData.exists())
+            {
                 trained = true;
+                statusLabel.setText("Dane z modelami dostepne");
+            }
         } catch (Exception e) {
             System.out.println("init failed");
         }
@@ -184,6 +187,7 @@ public class MainWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
+        statusLabel.setText("Trwa wyszukiwanie...");
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
             .setOAuthConsumerKey("PG0vtiQ73sbKKCfp9JfqyQ")
@@ -207,9 +211,8 @@ public class MainWindow extends javax.swing.JFrame {
 //            System.out.println("Failed to get rate limit status: " + te.getMessage());
 //        }
         try {
-            statusLabel.setText("Trwa wyszukiwanie...");
             Query query = new Query(jTextField1.getText());
-            query.setCount(5);
+            query.setCount(10);
             query.setLang("en");
             if (checkBoxLatest.isSelected() && checkBoxPopular.isSelected())
                 query.setResultType(Query.ResultType.mixed);
@@ -227,12 +230,13 @@ public class MainWindow extends javax.swing.JFrame {
                 listModel.addElement(tweet.getText());
             });
                 
-        } catch (TwitterException te) {
+        } catch (TwitterException e) {
             statusLabel.setText("Wyszukiwanie nie powiodlo sie");
-            te.printStackTrace();
+            e.printStackTrace();
             //System.out.println("Failed to search tweets: " + te.getMessage());
-            JOptionPane.showMessageDialog(null, te.getMessage(), "Blad pobierania wynikow wyszukiwania", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Blad pobierania wynikow wyszukiwania", JOptionPane.INFORMATION_MESSAGE);
         }
+        statusLabel.setText("Gotowe");
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void learnButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_learnButtonActionPerformed
@@ -242,14 +246,14 @@ public class MainWindow extends javax.swing.JFrame {
             try {
                 statusLabel.setText("Trwa uczenie (Bayes) ...");
                 bayesC.train(file, cmn);
-                //statusLabel.setText("Trwa uczenie (SVM) ...");
-                //svmC.train(file, cmn);
+                statusLabel.setText("Trwa uczenie (SVM) ...");
+                svmC.train(file, cmn);
                 statusLabel.setText("Gotowe");
                 trained = true;
-            } catch (Exception ex) {
+            } catch (Exception e) {
                 statusLabel.setText("Blad");
-                System.out.println("problem accessing file "+file.getAbsolutePath());
-                System.out.println(ex.toString());
+                System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
+                System.out.println(e.toString());
             }
         }
     }//GEN-LAST:event_learnButtonActionPerformed
@@ -260,11 +264,11 @@ public class MainWindow extends javax.swing.JFrame {
             String svmResult;
             statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
             bayesResult = bayesC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
-            //statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
-            //svmResult = svmC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
+            statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
+            svmResult = svmC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
             statusLabel.setText("Gotowe");
             bayesLabel.setText(bayesResult);
-            //svmLabel.setText(svmResult);
+            svmLabel.setText(svmResult);
         } else
             JOptionPane.showMessageDialog(null, "Najpierw uruchom proces uczenia!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_checkTweetButtonActionPerformed
@@ -276,14 +280,14 @@ public class MainWindow extends javax.swing.JFrame {
             try {
                 statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
                 int bayesErr = bayesC.classifyFromCsv(file, cmn);
-                //statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
-                //int svmErr = svmC.classifyFromCsv(file, cmn);
+                statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
+                int svmErr = svmC.classifyFromCsv(file, cmn);
                 statusLabel.setText("Gotowe");
-                JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr + "\nBledy SVM: " + 0, "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                System.out.println("problem accessing file"+file.getAbsolutePath());
+                JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr + "\nBledy SVM: " + svmErr, "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
+                statusLabel.setText("Blad");
             }
-            statusLabel.setText("Blad");
         }
     }//GEN-LAST:event_testFromCsvButtonActionPerformed
 

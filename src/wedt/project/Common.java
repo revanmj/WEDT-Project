@@ -55,7 +55,17 @@ public class Common {
         attributes.add(new Attribute("Sentiment",sentiment));
     }
     
-    public Instances getPrepapredSet(File file) {
+    public String getLabel(double dist[]) {
+        if (dist[0] <= 0.50 && dist[1] <= 0.50)
+            return "neutral";
+        else if (dist[0] > 0.50)
+            return "positive";
+        else if (dist[1] > 0.50)
+            return "negative";
+        return "neutral";
+    }
+    
+    public Instances getPrepapredSet(File file, int mode) {
         try {
             CSVLoader csvLoader = new CSVLoader();
             csvLoader.setSource(file);
@@ -63,7 +73,7 @@ public class Common {
             Instances instances = getEmptyInstances("instances");
             
             for(Instance currentInstance : loadedInstances) {
-                Instance tmpInstance = extractFeature(currentInstance);
+                Instance tmpInstance = extractFeature(currentInstance, mode);
                 tmpInstance.setDataset(instances);
                 instances.add(tmpInstance);
             }
@@ -84,7 +94,7 @@ public class Common {
         return instances;
     }
        
-    public Instance extractFeature(Instance input) {
+    public Instance extractFeature(Instance input, int mode) {
         Map<Integer,Double> map = new TreeMap<>();
         List<Token> tokens = tagger.runPOSTagger(input.stringValue(0));
 
@@ -110,10 +120,13 @@ public class Common {
         }
         indices[i] = featureWords.size();
         values[i] = (double)sentiment.indexOf(input.stringValue(1));
-        return new SparseInstance(1.0,values,indices,featureWords.size());
+        if (mode == 1)
+            return new SparseInstance(1.0,values,indices,featureWords.size() + 1);
+        else
+            return new SparseInstance(1.0,values,indices,featureWords.size());
     }
     
-    public Instance extractFeatureFromString(String sentence) {
+    public Instance extractFeatureFromString(String sentence, int mode) {
         Map<Integer,Double> map = new TreeMap<>();
         List<Token> tokens = tagger.runPOSTagger(sentence);
 
@@ -139,7 +152,10 @@ public class Common {
         }
         indices[i] = featureWords.size();
         values[i] = (double)sentiment.indexOf("neutral");
-        return new SparseInstance(1.0,values,indices,featureWords.size());
+        if (mode == 1)
+            return new SparseInstance(1.0,values,indices,featureWords.size() + 1);
+        else
+            return new SparseInstance(1.0,values,indices,featureWords.size());
     }
 
 }
