@@ -38,6 +38,7 @@ public class Common {
         sentiment = new ArrayList<>();
         sentiment.add("positive");
         sentiment.add("negative");
+        sentiment.add("neutral");
         tagger = new POSTagger();
         
         ObjectInputStream inputS = null;
@@ -55,14 +56,11 @@ public class Common {
         attributes.add(new Attribute("Sentiment",sentiment));
     }
     
-    public String getLabel(double dist[]) {
-        if (dist[0] <= 0.50 && dist[1] <= 0.50)
-            return "neutral";
-        else if (dist[0] > 0.50)
-            return "positive";
-        else if (dist[1] > 0.50)
-            return "negative";
-        return "neutral";
+    public void printDetailedResults(double shouldBe, double[] dist, double score) {
+        System.out.println(
+                "Should be: " + sentiment.get(1) + ", classified as: " + sentiment.get((int)score));
+        System.out.println(
+                "Distribution: positive[" + dist[0] + "], negative[" + dist[1] + "], neutral[" + dist[2] + "].");
     }
     
     public Instances getPrepapredSet(File file, int mode) {
@@ -120,10 +118,7 @@ public class Common {
         }
         indices[i] = featureWords.size();
         values[i] = (double)sentiment.indexOf(input.stringValue(1));
-        if (mode == 1)
-            return new SparseInstance(1.0,values,indices,featureWords.size() + 1);
-        else
-            return new SparseInstance(1.0,values,indices,featureWords.size());
+        return new SparseInstance(1.0,values,indices,featureWords.size() + 1);
     }
     
     public Instance extractFeatureFromString(String sentence, int mode) {
@@ -152,10 +147,7 @@ public class Common {
         }
         indices[i] = featureWords.size();
         values[i] = (double)sentiment.indexOf("neutral");
-        if (mode == 1)
-            return new SparseInstance(1.0,values,indices,featureWords.size() + 1);
-        else
-            return new SparseInstance(1.0,values,indices,featureWords.size());
+        return new SparseInstance(1.0,values,indices,featureWords.size() + 1);
     }
 
 }

@@ -54,6 +54,7 @@ public class BayesClassifier {
     
     public int classifyFromCsv(File file, Common cmn) {   
         Instances instances = cmn.getPrepapredSet(file, 0);
+        System.out.println("==== Bayes ====");
             
         try {
             cls = (Classifier) weka.core.SerializationHelper.read("Bayes.model");
@@ -63,6 +64,9 @@ public class BayesClassifier {
                 double score = cls.classifyInstance(instance);
                 if (instance.value(instances.attribute("Sentiment")) != score)
                     errors++;
+                double dist[] = cls.distributionForInstance(instance);
+                cmn.printDetailedResults(instance.value(instances.attribute("Sentiment")), dist, score);
+                System.out.println();
             }
             return errors;
         } catch (Exception e) {

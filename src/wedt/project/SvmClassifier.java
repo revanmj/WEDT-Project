@@ -60,6 +60,7 @@ public class SvmClassifier {
     
     public int classifyFromCsv(File file, Common cmn) {
         Instances instances = cmn.getPrepapredSet(file, 1);
+        System.out.println("==== SVM ====");
             
         try {
             cls = (Classifier) weka.core.SerializationHelper.read("SVM.model");
@@ -69,6 +70,9 @@ public class SvmClassifier {
                 double score = cls.classifyInstance(instance);
                 if (instance.value(instances.attribute("Sentiment")) != score)
                     errors++;
+                double dist[] = cls.distributionForInstance(instance);
+                cmn.printDetailedResults(instance.value(instances.attribute("Sentiment")), dist, score);
+                System.out.println();
             }
             return errors;
         } catch (Exception e) {

@@ -106,6 +106,9 @@ public class MainWindow extends javax.swing.JFrame {
 
         jLabel2.setText("SVM:");
 
+        statusLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        statusLabel.setText("Status");
+
         learnButton.setText("Uczenie");
         learnButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -120,34 +123,33 @@ public class MainWindow extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 560, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(testFromCsvButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel1)
-                            .addComponent(bayesLabel)
-                            .addComponent(jLabel2)
-                            .addComponent(svmLabel)
-                            .addComponent(learnButton, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
-                            .addComponent(checkTweetButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(0, 11, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(bayesLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 107, Short.MAX_VALUE)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(svmLabel)
+                        .addGap(56, 56, 56)
+                        .addComponent(statusLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(checkBoxLatest)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(checkBoxPopular)
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addComponent(jTextField1))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(searchButton))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(testFromCsvButton)
+                                .addComponent(checkBoxLatest)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(checkBoxPopular)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(statusLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 317, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap())))
+                                .addComponent(learnButton))
+                            .addComponent(jTextField1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(checkTweetButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(searchButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -159,27 +161,19 @@ public class MainWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxPopular)
-                    .addComponent(checkBoxLatest))
+                    .addComponent(checkBoxLatest)
+                    .addComponent(learnButton)
+                    .addComponent(checkTweetButton))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(bayesLabel)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(svmLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(learnButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(checkTweetButton)
-                        .addGap(0, 135, Short.MAX_VALUE)))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(testFromCsvButton)
-                    .addComponent(statusLabel))
+                    .addComponent(statusLabel)
+                    .addComponent(jLabel1)
+                    .addComponent(bayesLabel)
+                    .addComponent(jLabel2)
+                    .addComponent(svmLabel))
                 .addContainerGap())
         );
 
@@ -259,7 +253,7 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_learnButtonActionPerformed
 
     private void checkTweetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkTweetButtonActionPerformed
-        if (trained) {
+        if (trained && tweetsList.getSelectedIndex() != -1) {
             String bayesResult;
             String svmResult;
             statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
@@ -270,25 +264,31 @@ public class MainWindow extends javax.swing.JFrame {
             bayesLabel.setText(bayesResult);
             svmLabel.setText(svmResult);
         } else
-            JOptionPane.showMessageDialog(null, "Najpierw uruchom proces uczenia!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
+            if (!trained)
+                JOptionPane.showMessageDialog(null, "Najpierw uruchom proces uczenia!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
+            else if (tweetsList.getSelectedIndex() == -1)
+                JOptionPane.showMessageDialog(null, "Nie wybrano tweeta!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_checkTweetButtonActionPerformed
 
     private void testFromCsvButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testFromCsvButtonActionPerformed
-        int returnVal = fileChooser.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            try {
-                statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
-                int bayesErr = bayesC.classifyFromCsv(file, cmn);
-                statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
-                int svmErr = svmC.classifyFromCsv(file, cmn);
-                statusLabel.setText("Gotowe");
-                JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr + "\nBledy SVM: " + svmErr, "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception e) {
-                System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
-                statusLabel.setText("Blad");
+        if (trained) {
+            int returnVal = fileChooser.showOpenDialog(this);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                try {
+                    statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
+                    int bayesErr = bayesC.classifyFromCsv(file, cmn);
+                    statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
+                    int svmErr = svmC.classifyFromCsv(file, cmn);
+                    statusLabel.setText("Gotowe");
+                    JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr + "\nBledy SVM: " + svmErr, "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
+                    statusLabel.setText("Blad");
+                }
             }
-        }
+        } else
+            JOptionPane.showMessageDialog(null, "Najpierw uruchom proces uczenia!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_testFromCsvButtonActionPerformed
 
     /**
