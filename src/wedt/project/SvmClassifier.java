@@ -27,6 +27,16 @@ public class SvmClassifier {
         } catch (Exception e) {}
     }
     
+    public int setParameters(String params) {
+        try {
+            ((SMO)cls).setOptions(weka.core.Utils.splitOptions(params));
+            return 0;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return -1;
+        }
+    }
+    
     public void train(File file, Common cmn) {
         Instances instances = cmn.getPrepapredSet(file, 1);
             
