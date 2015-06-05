@@ -38,7 +38,7 @@ public class SvmClassifier {
     }
     
     public void train(File file, Common cmn) {
-        Instances instances = cmn.getPrepapredSet(file, 1);
+        Instances instances = cmn.getPrepapredSet(file);
             
         try {
             cls.buildClassifier(instances);
@@ -50,16 +50,13 @@ public class SvmClassifier {
     }
     
     public String classifySingle(String tweet, Common cmn) {
-        System.out.println(tweet);
-        Instance instance = cmn.extractFeatureFromString(tweet, 1);
-        instance.setDataset(cmn.getEmptyInstances("instances"));
-        
         try {
+            System.out.println("==== SVM ====");
             cls = (Classifier) weka.core.SerializationHelper.read("SVM.model");
-            double score = cls.classifyInstance(instance);
-            double dist[] = cls.distributionForInstance(instance); // dokladne dane
-            for (int i = 0; i < dist.length; i++)
-                System.out.println(dist[i] + "");
+            Instances instances = cmn.prepareSingle(tweet);
+            double score = cls.classifyInstance(instances.firstInstance());
+            double dist[] = cls.distributionForInstance(instances.firstInstance()); // dokladne dane
+            System.out.println("dist: " + dist[0] + " " + dist[1] + " " + dist[2]);
             return cmn.sentiment.get((int)score);
         } catch (Exception e) {
             System.out.println("Blad klasyfikacji single SVM");
@@ -69,7 +66,7 @@ public class SvmClassifier {
     }
     
     public int classifyFromCsv(File file, Common cmn) {
-        Instances instances = cmn.getPrepapredSet(file, 1);
+        Instances instances = cmn.getPrepapredSet(file);
         System.out.println("==== SVM ====");
             
         try {

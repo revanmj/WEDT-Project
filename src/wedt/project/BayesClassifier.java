@@ -34,7 +34,7 @@ public class BayesClassifier {
     }
     
     public void train(File file, Common cmn) {
-        Instances instances = cmn.getPrepapredSet(file, 0);
+        Instances instances = cmn.getPrepapredSet(file);
                 
         try {
             cls.buildClassifier(instances);
@@ -45,16 +45,13 @@ public class BayesClassifier {
     }
     
     public String classifySingle(String tweet, Common cmn) {
-        System.out.println(tweet);
-        Instance instance = cmn.extractFeatureFromString(tweet, 0);
-        instance.setDataset(cmn.getEmptyInstances("instances"));
-        
         try {
+            System.out.println("==== Bayes ====");
             cls = (Classifier) weka.core.SerializationHelper.read("Bayes.model");
-            double score = cls.classifyInstance(instance);
-            double dist[] = cls.distributionForInstance(instance); // dokladne dane
-            for (int i = 0; i < dist.length; i++)
-                System.out.println(dist[i] + "");
+            Instances instances = cmn.prepareSingle(tweet);
+            double score = cls.classifyInstance(instances.firstInstance());
+            double dist[] = cls.distributionForInstance(instances.firstInstance()); // dokladne dane
+            System.out.println("dist: " + dist[0] + " " + dist[1] + " " + dist[2]);
             return cmn.sentiment.get((int)score);
         } catch (Exception e) {
             System.out.println("Blas klasyfikacji single Bayes");
@@ -63,7 +60,7 @@ public class BayesClassifier {
     }
     
     public int classifyFromCsv(File file, Common cmn) {   
-        Instances instances = cmn.getPrepapredSet(file, 0);
+        Instances instances = cmn.getPrepapredSet(file);
         System.out.println("==== Bayes ====");
             
         try {

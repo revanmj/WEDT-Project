@@ -7,10 +7,13 @@ package wedt.project;
 
 import cmu.arktweetnlp.POSTagger;
 import cmu.arktweetnlp.Token;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +66,7 @@ public class Common {
                 "Distribution: positive[" + dist[0] + "], negative[" + dist[1] + "], neutral[" + dist[2] + "].");
     }
     
-    public Instances getPrepapredSet(File file, int mode) {
+    public Instances getPrepapredSet(File file) {
         try {
             CSVLoader csvLoader = new CSVLoader();
             csvLoader.setSource(file);
@@ -71,7 +74,7 @@ public class Common {
             Instances instances = getEmptyInstances("instances");
             
             for(Instance currentInstance : loadedInstances) {
-                Instance tmpInstance = extractFeature(currentInstance, mode);
+                Instance tmpInstance = extractFeature(currentInstance);
                 tmpInstance.setDataset(instances);
                 instances.add(tmpInstance);
             }
@@ -83,7 +86,25 @@ public class Common {
         }
         
         return null;
-    }    
+    }   
+    
+    public Instances prepareSingle(String tweet) throws Exception {
+        System.out.println(tweet);
+        
+        File fout = new File("tmp.csv");
+	FileOutputStream fos = new FileOutputStream(fout);
+ 
+	BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+        bw.write("Tweet,Sentiment");
+	bw.newLine();
+	bw.write("\"" + tweet + "\", neutral");
+	bw.newLine();
+	bw.close();
+        
+        Instances tmp = getPrepapredSet(fout);
+        fout.delete();
+        return tmp;
+    }
     
     public Instances getEmptyInstances(final String name) {
         
@@ -92,7 +113,7 @@ public class Common {
         return instances;
     }
        
-    public Instance extractFeature(Instance input, int mode) {
+    public Instance extractFeature(Instance input) {
         Map<Integer,Double> map = new TreeMap<>();
         List<Token> tokens = tagger.runPOSTagger(input.stringValue(0));
 
@@ -118,35 +139,6 @@ public class Common {
         }
         indices[i] = featureWords.size();
         values[i] = (double)sentiment.indexOf(input.stringValue(1));
-        return new SparseInstance(1.0,values,indices,featureWords.size() + 1);
-    }
-    
-    public Instance extractFeatureFromString(String sentence, int mode) {
-        Map<Integer,Double> map = new TreeMap<>();
-        List<Token> tokens = tagger.runPOSTagger(sentence);
-
-        for(Token token : tokens) {
-            switch(token.getPOS()) {
-                case "A":
-                case "V":
-                case "R":   
-                case "#":   
-                    String word = token.getWord().replaceAll("#","");
-                    if(featureWords.contains(word)) {
-                        map.put(featureWords.indexOf(word),1.0);
-                    }
-            }
-        }
-        int indices[] = new int[map.size()+1];
-        double values[] = new double[map.size()+1];
-        int i=0;
-        for(Map.Entry<Integer,Double> entry : map.entrySet()) {
-            indices[i] = entry.getKey();
-            values[i] = entry.getValue();
-            i++;
-        }
-        indices[i] = featureWords.size();
-        values[i] = (double)sentiment.indexOf("neutral");
         return new SparseInstance(1.0,values,indices,featureWords.size() + 1);
     }
 
