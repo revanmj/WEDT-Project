@@ -61,7 +61,7 @@ public class Common {
     
     public void printDetailedResults(double shouldBe, double[] dist, double score) {
         System.out.println(
-                "Should be: " + sentiment.get(1) + ", classified as: " + sentiment.get((int)score));
+                "Should be: " + sentiment.get((int)shouldBe) + ", classified as: " + sentiment.get((int)score));
         System.out.println(
                 "Distribution: positive[" + dist[0] + "], negative[" + dist[1] + "], neutral[" + dist[2] + "].");
     }

@@ -65,13 +65,15 @@ public class BayesClassifier {
             
         try {
             cls = (Classifier) weka.core.SerializationHelper.read("Bayes.model");
-            int errors = 0;
+            int errors = 0, i = 0;
 
             for(Instance instance : instances) {
+                i++;
                 double score = cls.classifyInstance(instance);
                 if (instance.value(instances.attribute("Sentiment")) != score)
                     errors++;
                 double dist[] = cls.distributionForInstance(instance);
+                System.out.print(i + ": ");
                 cmn.printDetailedResults(instance.value(instances.attribute("Sentiment")), dist, score);
                 System.out.println();
             }

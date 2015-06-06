@@ -318,6 +318,7 @@ public class MainWindow extends javax.swing.JFrame {
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
                 try {
+                    System.out.flush();
                     statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
                     int bayesErr = bayesC.classifyFromCsv(file, cmn);
                     statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
@@ -327,6 +328,7 @@ public class MainWindow extends javax.swing.JFrame {
                 } catch (Exception e) {
                     System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
                     statusLabel.setText("Blad");
+                    e.printStackTrace();
                 }
             }
         } else
