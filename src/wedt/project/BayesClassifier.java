@@ -6,6 +6,8 @@
 package wedt.project;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.core.Instance;
@@ -59,29 +61,45 @@ public class BayesClassifier {
         return null;
     }
     
-    public int classifyFromCsv(File file, Common cmn) {   
+    public List<Integer> classifyFromCsv(File file, Common cmn) {   
         Instances instances = cmn.getPrepapredSet(file);
-        System.out.println("==== Bayes ====");
             
         try {
             cls = (Classifier) weka.core.SerializationHelper.read("Bayes.model");
-            int errors = 0, i = 0;
-
+            int errAll = 0, errPosNeu = 0, errPosNeg = 0, errNegPos = 0, errNegNeu = 0, errNeuPos = 0, errNeuNeg = 0, i = 0;
+            List<Integer> errors = new ArrayList<Integer>();
+            
             for(Instance instance : instances) {
                 i++;
                 double score = cls.classifyInstance(instance);
-                if (instance.value(instances.attribute("Sentiment")) != score)
-                    errors++;
-                double dist[] = cls.distributionForInstance(instance);
-                System.out.print(i + ": ");
-                cmn.printDetailedResults(instance.value(instances.attribute("Sentiment")), dist, score);
-                System.out.println();
+                double shouldBe = instance.value(instances.attribute("Sentiment"));
+                if (shouldBe != score) {
+                    errAll++;
+                    if (shouldBe == 0.0 && score == 2.0)
+                        errPosNeu++;
+                    else if (shouldBe == 0.0 && score == 1.0)
+                        errPosNeg++;
+                    else if (shouldBe == 1.0 && score == 0.0)
+                        errNegPos++;
+                    else if (shouldBe == 1.0 && score == 2.0)
+                        errNegNeu++;
+                    else if (shouldBe == 2.0 && score == 0.0)
+                        errNeuPos++;
+                    else if (shouldBe == 2.0 && score == 1.0)
+                        errNeuNeg++;
+                }
+                //System.out.println("==== Bayes ====");
+                //double dist[] = cls.distributionForInstance(instance);
+                //System.out.print(i + ": ");
+                //cmn.printDetailedResults(instance.value(instances.attribute("Sentiment")), dist, score);
+                //System.out.println();
             }
+            errors.add(errAll); errors.add(errPosNeu); errors.add(errPosNeg); errors.add(errNegPos); errors.add(errNegNeu); errors.add(errNeuPos); errors.add(errNeuNeg);
             return errors;
         } catch (Exception e) {
             System.out.println("Blad klasyfikacji CSV Bayes");
         }
-        return -1;
+        return null;
     }
 
 }

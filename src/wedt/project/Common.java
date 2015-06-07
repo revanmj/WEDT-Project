@@ -66,6 +66,16 @@ public class Common {
                 "Distribution: positive[" + dist[0] + "], negative[" + dist[1] + "], neutral[" + dist[2] + "].");
     }
     
+    public void printDetailedErrors(List<Integer> errors) {
+        System.out.println("Bledow ogolem: " + errors.get(0));
+        System.out.println("Powinien byc positive, jest negative: " + errors.get(1));
+        System.out.println("Powinien byc positive, jest neutral:" + errors.get(2));
+        System.out.println("Powinien byc negative, jest positive:" + errors.get(3));
+        System.out.println("Powinien byc negative, jest neutral:" + errors.get(4));
+        System.out.println("Powinien byc neutral, jest positive:" + errors.get(5));
+        System.out.println("Powinien byc neutral, jest negative:" + errors.get(6));
+    }
+    
     public Instances getPrepapredSet(File file) {
         try {
             CSVLoader csvLoader = new CSVLoader();
