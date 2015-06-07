@@ -74,7 +74,7 @@ public class SvmClassifier {
             cls = (Classifier) weka.core.SerializationHelper.read("SVM.model");
             int errAll = 0, errPosNeu = 0, errPosNeg = 0, errNegPos = 0, errNegNeu = 0, errNeuPos = 0, errNeuNeg = 0, i = 0;
             List<Integer> errors = new ArrayList<Integer>();
-            
+            long start = System.currentTimeMillis();
             for(Instance instance : instances) {
                 i++;
                 double score = cls.classifyInstance(instance);
@@ -100,6 +100,8 @@ public class SvmClassifier {
                 //cmn.printDetailedResults(instance.value(instances.attribute("Sentiment")), dist, score);
                 //System.out.println();
             }
+            long end = System.currentTimeMillis() - start;
+            System.out.println("Czas wykonywania [ms]: " + end);
             errors.add(errAll); errors.add(errPosNeu); errors.add(errPosNeg); errors.add(errNegPos); errors.add(errNegNeu); errors.add(errNeuPos); errors.add(errNeuNeg);
             return errors;
         } catch (Exception e) {
