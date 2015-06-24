@@ -10,6 +10,7 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
@@ -24,6 +25,7 @@ public class MainWindow extends javax.swing.JFrame {
     private Common cmn;
     private DefaultListModel listModel;
     private boolean trained = false;
+    List<Integer> bayesErr, svmErr;
     
     /**
      * Creates new form MainWindow
@@ -226,87 +228,177 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
         statusLabel.setText("Trwa wyszukiwanie...");
-        ConfigurationBuilder cb = new ConfigurationBuilder();
-        cb.setDebugEnabled(true)
-            .setOAuthConsumerKey("PG0vtiQ73sbKKCfp9JfqyQ")
-            .setOAuthConsumerSecret("ITCkTQiqCh3aVZexXentwnwCJooVpUOcpkIENPKowI")
-            .setOAuthAccessToken("89783194-z0J1KLudg6MFMhhysKmL29zB5wBjxfxWUboAh6lAI")
-            .setOAuthAccessTokenSecret("ytOdt7t8P1OrmAI2ZCRoX30ZC3eLcDSgPY8gOa6FCwQ");
-        TwitterFactory tf = new TwitterFactory(cb.build());
-        Twitter twitter = tf.getInstance();
-//        try {
-//            Map<String ,RateLimitStatus> rateLimitStatus = twitter.getRateLimitStatus();
-//            for (String endpoint : rateLimitStatus.keySet()) {
-//                RateLimitStatus status = rateLimitStatus.get(endpoint);
-//                System.out.println("Endpoint: " + endpoint);
-//                System.out.println(" Limit: " + status.getLimit());
-//                System.out.println(" Remaining: " + status.getRemaining());
-//                System.out.println(" ResetTimeInSeconds: " + status.getResetTimeInSeconds());
-//                System.out.println(" SecondsUntilReset: " + status.getSecondsUntilReset());
-//            }
-//        } catch (TwitterException te) {
-//            te.printStackTrace();
-//            System.out.println("Failed to get rate limit status: " + te.getMessage());
-//        }
-        try {
-            Query query = new Query(searchField.getText());
-            query.setCount(10);
-            query.setLang("en");
-            if (checkBoxLatest.isSelected() && checkBoxPopular.isSelected())
-                query.setResultType(Query.ResultType.mixed);
-            else if (checkBoxLatest.isSelected())
-                query.setResultType(Query.ResultType.recent);
-            else if (checkBoxPopular.isSelected())
-                query.setResultType(Query.ResultType.popular);
-            QueryResult result;
+        lockUI();
+        SwingWorker<List<Status>, Void> worker = new SwingWorker<List<Status>, Void>(){
+ 
+            @Override
+            protected List<Status> doInBackground() throws Exception {
+                ConfigurationBuilder cb = new ConfigurationBuilder();
+                cb.setDebugEnabled(true)
+                    .setOAuthConsumerKey("PG0vtiQ73sbKKCfp9JfqyQ")
+                    .setOAuthConsumerSecret("ITCkTQiqCh3aVZexXentwnwCJooVpUOcpkIENPKowI")
+                    .setOAuthAccessToken("89783194-z0J1KLudg6MFMhhysKmL29zB5wBjxfxWUboAh6lAI")
+                    .setOAuthAccessTokenSecret("ytOdt7t8P1OrmAI2ZCRoX30ZC3eLcDSgPY8gOa6FCwQ");
+                TwitterFactory tf = new TwitterFactory(cb.build());
+                Twitter twitter = tf.getInstance();
 
-            result = twitter.search(query);
-            List<Status> tweets = result.getTweets();
-            listModel = new DefaultListModel();
-            tweetsList.setModel(listModel);
-            tweets.stream().forEach((tweet) -> {
-                listModel.addElement(tweet.getText());
-            });
-                
-        } catch (TwitterException e) {
-            statusLabel.setText("Wyszukiwanie nie powiodlo sie");
-            e.printStackTrace();
-            //System.out.println("Failed to search tweets: " + te.getMessage());
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Blad pobierania wynikow wyszukiwania", JOptionPane.INFORMATION_MESSAGE);
-        }
-        statusLabel.setText("Gotowe");
+                try {
+                    Query query = new Query(searchField.getText());
+                    query.setCount(10);
+                    query.setLang("en");
+                    if (checkBoxLatest.isSelected() && checkBoxPopular.isSelected())
+                        query.setResultType(Query.ResultType.mixed);
+                    else if (checkBoxLatest.isSelected())
+                        query.setResultType(Query.ResultType.recent);
+                    else if (checkBoxPopular.isSelected())
+                        query.setResultType(Query.ResultType.popular);
+                    
+                    QueryResult result = twitter.search(query);
+                    return result.getTweets();
+                    
+                } catch (TwitterException e) {
+                    statusLabel.setText("Wyszukiwanie nie powiodlo sie");
+                    e.printStackTrace();
+                    //System.out.println("Failed to search tweets: " + te.getMessage());
+                    JOptionPane.showMessageDialog(null, e.getMessage(), "Blad pobierania wynikow wyszukiwania", JOptionPane.INFORMATION_MESSAGE);
+                }
+                return null;
+            }
+ 
+            @Override
+            protected void done() {
+                try {
+                    List<Status> tweets = get();
+                    listModel = new DefaultListModel();
+                    tweetsList.setModel(listModel);
+                    tweets.stream().forEach((tweet) -> {
+                        listModel.addElement(tweet.getText());
+                    });
+                    statusLabel.setText("Gotowe");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    statusLabel.setText("Wyszukiwanie nie powiodlo sie");
+                }
+                unlockUI();
+            }
+        };
+        worker.execute();        
     }//GEN-LAST:event_searchButtonActionPerformed
 
     private void learnButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_learnButtonActionPerformed
         int returnVal = fileChooser.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
-            try {
-                statusLabel.setText("Trwa uczenie (Bayes) ...");
-                bayesC.train(file, cmn);
-                statusLabel.setText("Trwa uczenie (SVM) ...");
-                svmC.train(file, cmn);
-                statusLabel.setText("Gotowe");
-                trained = true;
-            } catch (Exception e) {
-                statusLabel.setText("Blad");
-                System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
-                System.out.println(e.toString());
-            }
+            trained = true;
+            statusLabel.setText("Trwa uczenie (Bayes) ...");
+            lockUI();
+            SwingWorker<Boolean, Void> workerBayes = new SwingWorker<Boolean, Void>(){
+ 
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    try {
+                        bayesC.train(file, cmn);
+                        return true;
+                    } catch (Exception e) {
+                        trained = false;
+                    }
+                    return false;
+                }
+ 
+                @Override
+                protected void done() {
+                    try {
+                        if (get())
+                            statusLabel.setText("Gotowe");
+                        else
+                            statusLabel.setText("Blad");
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        statusLabel.setText("Blad");
+                    }
+                }
+            };
+            workerBayes.execute();
+            
+            statusLabel.setText("Trwa uczenie (SVM) ...");
+            SwingWorker<Boolean, Void> workerSvm = new SwingWorker<Boolean, Void>(){
+ 
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    try {
+                        svmC.train(file, cmn);
+                        return true;
+                    } catch (Exception e) {
+                        trained = false;
+                    }
+                    return false;
+                }
+ 
+                @Override
+                protected void done() {
+                    try {
+                        if (get())
+                            statusLabel.setText("Gotowe");
+                        else
+                            statusLabel.setText("Blad");
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        statusLabel.setText("Blad");
+                    }
+                    unlockUI();
+                }
+            };
+            workerSvm.execute();
         }
     }//GEN-LAST:event_learnButtonActionPerformed
 
     private void checkTweetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkTweetButtonActionPerformed
         if (trained && tweetsList.getSelectedIndex() != -1) {
-            String bayesResult;
-            String svmResult;
-            statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
-            bayesResult = bayesC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
-            statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
-            svmResult = svmC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
-            statusLabel.setText("Gotowe");
-            bayesLabel.setText(bayesResult);
-            svmLabel.setText(svmResult);
+            lockUI();
+            statusLabel.setText("Klasyfikacja (Bayes) w toku ...");
+            SwingWorker<String, Void> workerBayes = new SwingWorker<String, Void>(){
+ 
+                @Override
+                protected String doInBackground() throws Exception {
+                    String result = bayesC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
+                    return result;
+                }
+ 
+                @Override
+                protected void done() {
+                    try {
+                        bayesLabel.setText(get());
+                        statusLabel.setText("Gotowe");
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        statusLabel.setText("Blad klasyfikacji");
+                    }
+                }
+            };
+            workerBayes.execute();
+            
+            statusLabel.setText("Klasyfikacja (SVM) w toku ...");
+            SwingWorker<String, Void> workerSvm = new SwingWorker<String, Void>(){
+ 
+                @Override
+                protected String doInBackground() throws Exception {
+                    String result = svmC.classifySingle(listModel.get(tweetsList.getSelectedIndex()).toString(), cmn);
+                    return result;
+                }
+ 
+                @Override
+                protected void done() {
+                    try {
+                        svmLabel.setText(get());
+                        statusLabel.setText("Gotowe");
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        statusLabel.setText("Blad klasyfikacji");
+                    }
+                    unlockUI();
+                }
+            };
+            workerSvm.execute();
         } else
             if (!trained)
                 JOptionPane.showMessageDialog(null, "Najpierw uruchom proces uczenia!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
@@ -319,25 +411,64 @@ public class MainWindow extends javax.swing.JFrame {
             int returnVal = fileChooser.showOpenDialog(this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
-                try {
-                    System.out.flush();
-                    statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
-                    List<Integer> bayesErr = bayesC.classifyFromCsv(file, cmn);
-                    statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
-                    List<Integer> svmErr = svmC.classifyFromCsv(file, cmn);
-                    statusLabel.setText("Gotowe");
-                    JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr.get(0) + "\nBledy SVM: " + svmErr.get(0), "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
-                    if (bayesErr != null && svmErr != null) {
-                        System.out.println("==== Bledy Bayes ====");
-                        cmn.printDetailedErrors(bayesErr);
-                        System.out.println("==== Bledy SVM ====");
-                        cmn.printDetailedErrors(svmErr);
+                
+                lockUI();
+                System.out.flush();
+                statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
+                SwingWorker<List<Integer>, Void> workerBayes = new SwingWorker<List<Integer>, Void>(){
+ 
+                    @Override
+                    protected List<Integer> doInBackground() throws Exception {
+                        statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
+                        List<Integer> Err = bayesC.classifyFromCsv(file, cmn);
+                        return Err;
                     }
-                } catch (Exception e) {
-                    System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
-                    statusLabel.setText("Blad");
-                    e.printStackTrace();
-                }
+ 
+                    @Override
+                    protected void done() {
+                        try {
+                            System.out.println("==== Bledy Bayes ====");
+                            bayesErr = get();
+                            cmn.printDetailedErrors(bayesErr);
+                            statusLabel.setText("Gotowe");
+                            showErrorSummary();
+                        } catch (Exception ex) {
+                            System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
+                            statusLabel.setText("Blad");
+                            ex.printStackTrace();
+                        }
+                        unlockUI();
+                    }
+ 
+               };
+               workerBayes.execute();
+               
+               statusLabel.setText("Trwa klasyfikowanie (SVM) ...");
+               SwingWorker<List<Integer>, Void> workerSvm = new SwingWorker<List<Integer>, Void>(){
+ 
+                    @Override
+                    protected List<Integer> doInBackground() throws Exception {
+                        statusLabel.setText("Trwa klasyfikowanie (Bayes) ...");
+                        List<Integer> Err = svmC.classifyFromCsv(file, cmn);
+                        return Err;
+                    }
+ 
+                    @Override
+                    protected void done() {
+                        try {
+                            System.out.println("==== Bledy SVM ====");
+                            svmErr = get();
+                            cmn.printDetailedErrors(svmErr);
+                            statusLabel.setText("Gotowe");
+                        } catch (Exception ex) {
+                            System.out.println("Blad dostepu do pliku " + file.getAbsolutePath());
+                            statusLabel.setText("Blad");
+                            ex.printStackTrace();
+                        }
+                    }
+ 
+                };
+                workerSvm.execute();   
             }
         } else
             JOptionPane.showMessageDialog(null, "Najpierw uruchom proces uczenia!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
@@ -354,7 +485,41 @@ public class MainWindow extends javax.swing.JFrame {
         if (result == -1)
             JOptionPane.showMessageDialog(null, "Nieprawidlowe parametry!", "Blad!", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_setParametersButtonActionPerformed
-
+    
+    public void lockUI() {
+        learnButton.setEnabled(false);
+        testFromCsvButton.setEnabled(false);
+        parametersField.setEnabled(false);
+        setParametersButton.setEnabled(false);
+        bayesRadioButton.setEnabled(false);
+        svmRadioButton.setEnabled(false);
+        searchField.setEnabled(false);
+        checkBoxLatest.setEnabled(false);
+        checkBoxPopular.setEnabled(false);
+        searchButton.setEnabled(false);
+        checkTweetButton.setEnabled(false);
+        tweetsList.setEnabled(false);
+    }
+    
+    public void unlockUI() {
+        learnButton.setEnabled(true);
+        testFromCsvButton.setEnabled(true);
+        parametersField.setEnabled(true);
+        setParametersButton.setEnabled(true);
+        bayesRadioButton.setEnabled(true);
+        svmRadioButton.setEnabled(true);
+        searchField.setEnabled(true);
+        checkBoxLatest.setEnabled(true);
+        checkBoxPopular.setEnabled(true);
+        searchButton.setEnabled(true);
+        checkTweetButton.setEnabled(true);
+        tweetsList.setEnabled(true);
+    }
+    
+    public void showErrorSummary(){
+        JOptionPane.showMessageDialog(null, "Bledy Bayes: " + bayesErr.get(0) + "\nBledy SVM: " + svmErr.get(0), "Wynik testu", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
     /**
      * @param args the command line arguments
      */
