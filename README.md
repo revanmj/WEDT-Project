@@ -17,3 +17,5 @@ Format plików CSV ze zbiorami uczącymi oraz testowymi:
 "treść_tweeta3",neutral
 ...
 </code></pre>
+
+Aplikacja powstała w środowisku NetBeans 8.0.
